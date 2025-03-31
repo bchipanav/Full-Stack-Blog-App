@@ -18,11 +18,11 @@ async function main() {
   }));
   await prisma.user.createMany({ data: users });
 
-  const posts = Array.from({ length: 40 }).map(() => ({
+  const posts = Array.from({ length: 400 }).map(() => ({
     title: faker.lorem.sentence(),
     slug: generateSlug(faker.lorem.sentence()),
     content: faker.lorem.paragraphs(3),
-    thumbnail: faker.image.urlLoremFlickr(),
+    thumbnail: faker.image.urlLoremFlickr({ height: 240, width: 320 }),
     published: true,
     authorId: faker.number.int({ min: 1, max: 10 }),
   }));
