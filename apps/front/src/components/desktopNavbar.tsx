@@ -18,16 +18,14 @@ const DesktopNavbar = (props: Props) => {
   return (
     <nav
       className={cn(
-        "hidden fixed transition-colors w-full z-50 text-white md:block",
+        "hidden fixed transition-colors w-full z-50 text-white top-0 md:block",
         {
           "bg-white text-gray-700 shadow-md": isScrollDown,
         }
       )}
     >
-      <div className="items-center flex px-4 py-4 container">
-        {props.children}
-      </div>
-      <hr className="border-b border-gray-100 opacity-25" />
+      <div className="flex items-center px-4 py-4">{props.children}</div>
+      <hr className="border-b border-gray-100 opacity-25 " />
     </nav>
   );
 };
