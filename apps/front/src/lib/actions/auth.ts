@@ -1,13 +1,14 @@
 "use server";
 
+import type { SignUpFormState } from "../types/formState";
+import { SignUpFormSchema } from "../zodSchemas/signUpFormSchema";
 import { fetchGraphQL } from "../fetchGraphQL";
 import { print } from "graphql";
 import { CREATE_USER_MUTATION, SIGN_IN_MUTATION } from "../gqlQueries";
-import type { SignInFormState, SignUpFormState } from "../types/formState";
-import { SignUpFormSchema } from "../zodSchemas/signUpFormSchema";
 import { redirect } from "next/navigation";
 import { LoginFormSchema } from "../zodSchemas/loginFormSchema";
-
+import { revalidatePath } from "next/cache";
+import { createSession } from "../session";
 export async function signUp(
   state: SignUpFormState,
   formData: FormData
@@ -15,6 +16,7 @@ export async function signUp(
   const validatedFields = SignUpFormSchema.safeParse(
     Object.fromEntries(formData.entries())
   );
+
   if (!validatedFields.success)
     return {
       data: Object.fromEntries(formData.entries()),
@@ -22,10 +24,11 @@ export async function signUp(
     };
 
   const data = await fetchGraphQL(print(CREATE_USER_MUTATION), {
-    createUserInput: {
+    input: {
       ...validatedFields.data,
     },
   });
+
   if (data.errors)
     return {
       data: Object.fromEntries(formData.entries()),
@@ -35,12 +38,13 @@ export async function signUp(
 }
 
 export async function signIn(
-  state: SignInFormState,
+  state: SignUpFormState,
   formData: FormData
-): Promise<SignInFormState> {
+): Promise<SignUpFormState> {
   const validatedFields = LoginFormSchema.safeParse(
     Object.fromEntries(formData.entries())
   );
+
   if (!validatedFields.success)
     return {
       data: Object.fromEntries(formData.entries()),
@@ -52,10 +56,22 @@ export async function signIn(
       ...validatedFields.data,
     },
   });
-  if (data.errors)
+
+  if (data.errors) {
     return {
       data: Object.fromEntries(formData.entries()),
-      message: "Invalid credentials",
+      message: "Invalid Credentials",
     };
+  }
+  // Todo: create a session
+  await createSession({
+    user: {
+      id: data.signIn.id,
+      name: data.signIn.name,
+      avatar: data.signIn.avatar,
+    },
+    accessToken: data.signIn.accessToken,
+  });
+  revalidatePath("/");
   redirect("/");
 }
