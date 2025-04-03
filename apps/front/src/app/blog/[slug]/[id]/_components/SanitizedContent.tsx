@@ -1,17 +1,26 @@
 "use client";
-import React from "react";
-import DOMPurify from "dompurify";
+
+import React, { useEffect, useState } from "react";
+import createDOMPurify from "dompurify";
+
 type Props = {
   content: string;
   className?: string;
 };
 
 const SanitizedContent = (props: Props) => {
-  const cleanHtml = DOMPurify.sanitize(props.content);
+  const [cleanHtml, setCleanHtml] = useState("");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const DOMPurify = createDOMPurify(window);
+      setCleanHtml(DOMPurify.sanitize(props.content));
+    }
+  }, [props.content]);
+
   return (
     <div
       className={props.className}
-      // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
       dangerouslySetInnerHTML={{ __html: cleanHtml }}
     />
   );
